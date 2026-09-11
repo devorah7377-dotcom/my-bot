@@ -3,7 +3,6 @@ package com.voiceagent.assistant
 import android.Manifest
 import android.content.Intent
 import android.content.pm.PackageManager
-import android.net.Uri
 import android.os.Bundle
 import android.provider.ContactsContract
 import android.speech.RecognizerIntent
@@ -14,7 +13,6 @@ import android.widget.ScrollView
 import android.widget.TextView
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.app.ActivityCompat
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import org.json.JSONObject
@@ -115,12 +113,23 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
     private fun runShell(cmd: String): String {
         return try {
-            val p = Shizuku.newProcess(arrayOf("sh", "-c", cmd), null, null)
-            val res = p.inputStream.bufferedReader().readText().trim()
-            p.waitFor()
+            val method = Shizuku::class.java.getMethod(
+                "newProcess",
+                Array<String>::class.java,
+                Array<String>::class.java,
+                String::class.java
+            )
+            val process = method.invoke(null, arrayOf("sh", "-c", cmd), null, null) as Process
+            val res = process.inputStream.bufferedReader().readText().trim()
+            process.waitFor()
             res
         } catch (e: Throwable) {
-            "Error: ${e.message}"
+            try {
+                val p = Runtime.getRuntime().exec(arrayOf("sh", "-c", cmd))
+                p.inputStream.bufferedReader().readText().trim()
+            } catch (t: Throwable) {
+                "Error: ${t.message}"
+            }
         }
     }
 
@@ -140,7 +149,7 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     private fun handleCommand(cmd: String) {
         log("🎤 פקודה: \"$cmd\"")
         thread {
-            val lower = cmd.lowercase()
+            val lower = cmd.lowercase(Locale.ROOT)
             if (lower.contains("חום") || lower.contains("טמפרטורה") || lower.contains("אמא")) {
                 log("⏳ בודק טמפרטורה נוכחית...")
                 val temp = fetchTemp()
@@ -157,7 +166,7 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
                 runShell("am start -a android.intent.action.VIEW -d \"whatsapp://send?phone=$cleanPhone&text=$enc\"")
                 Thread.sleep(1200)
-                runShell("input tap 980 2200") // לחיצה על שלח
+                runShell("input tap 980 2200") // כפתור שלח בוואטסאפ
 
                 val done = "הטמפרטורה היא $temp מעלות, ושלחתי הודעה לאמא בוואטסאפ."
                 log("✅ $done")
@@ -208,7 +217,7 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
     override fun onInit(status: Int) {
         if (status == TextToSpeech.SUCCESS) {
-            tts.language = Locale("he")
+            tts.setLanguage(Locale("he"))
         }
     }
 

@@ -8,7 +8,7 @@
 
     <application
         android:label="Voice Agent"
-        android:theme="@style/Theme.Material3.DayNight.NoActionBar">
+        android:theme="@style/Theme.VoiceAgentApp">
         <activity
             android:name=".MainActivity"
             android:exported="true">
