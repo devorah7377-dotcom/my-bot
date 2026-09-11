@@ -16,40 +16,343 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v4
 
-    - name: Unpack Project Source Files
+    - name: Generate Project Files
       run: |
-        echo "Extracting all Voice Agent project source files..."
-        python3 - << 'PYEOF'
-        import base64, zipfile, io
+        mkdir -p app/src/main/java/com/voiceagent/assistant
+        mkdir -p app/src/main/res/layout
+        mkdir -p app/src/main/res/values
 
-        raw_b64 = """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"""
+        cat << 'SUBEOF' > settings.gradle.kts
+        pluginManagement {
+            repositories {
+                google()
+                mavenCentral()
+                gradlePluginPortal()
+            }
+        }
+        dependencyResolutionManagement {
+            repositories {
+                google()
+                mavenCentral()
+            }
+        }
+        rootProject.name = "VoiceAgent"
+        include(":app")
+        SUBEOF
 
-        # Auto-clean whitespace/line breaks and auto-fix padding
-        clean_b64 = "".join(raw_b64.split())
-        missing_padding = len(clean_b64) % 4
-        if missing_padding:
-            clean_b64 += "=" * (4 - missing_padding)
+        cat << 'SUBEOF' > build.gradle.kts
+        plugins {
+            id("com.android.application") version "8.3.2" apply false
+            id("org.jetbrains.kotlin.android") version "1.9.22" apply false
+        }
+        SUBEOF
 
-        zip_data = base64.b64decode(clean_b64)
-        with zipfile.ZipFile(io.BytesIO(zip_data)) as z:
-            z.extractall('.')
+        cat << 'SUBEOF' > app/build.gradle.kts
+        plugins {
+            id("com.android.application")
+            id("org.jetbrains.kotlin.android")
+        }
 
-        print("All project files extracted successfully!")
-        PYEOF
+        android {
+            namespace = "com.voiceagent.assistant"
+            compileSdk = 34
+
+            defaultConfig {
+                applicationId = "com.voiceagent.assistant"
+                minSdk = 26
+                targetSdk = 34
+                versionCode = 1
+                versionName = "1.0"
+            }
+
+            compileOptions {
+                sourceCompatibility = JavaVersion.VERSION_17
+                targetCompatibility = JavaVersion.VERSION_17
+            }
+            kotlinOptions {
+                jvmTarget = "17"
+            }
+        }
+
+        dependencies {
+            implementation("androidx.core:core-ktx:1.12.0")
+            implementation("androidx.appcompat:appcompat:1.6.1")
+            implementation("com.google.android.material:material:1.11.0")
+            implementation("dev.rikka.shizuku:api:13.1.5")
+            implementation("dev.rikka.shizuku:provider:13.1.5")
+            implementation("com.squareup.okhttp3:okhttp:4.12.0")
+        }
+        SUBEOF
+
+        cat << 'SUBEOF' > app/src/main/AndroidManifest.xml
+        <?xml version="1.0" encoding="utf-8"?>
+        <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+            <uses-permission android:name="android.permission.INTERNET" />
+            <uses-permission android:name="android.permission.RECORD_AUDIO" />
+            <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+            <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+            <uses-permission android:name="android.permission.READ_CONTACTS" />
+
+            <application
+                android:label="Voice Agent"
+                android:theme="@style/Theme.Material3.DayNight.NoActionBar">
+                <activity
+                    android:name=".MainActivity"
+                    android:exported="true">
+                    <intent-filter>
+                        <action android:name="android.intent.action.MAIN" />
+                        <category android:name="android.intent.category.LAUNCHER" />
+                    </intent-filter>
+                </activity>
+
+                <provider
+                    android:name="rikka.shizuku.ShizukuProvider"
+                    android:authorities="${applicationId}.shizuku"
+                    android:multiprocess="false"
+                    android:enabled="true"
+                    android:exported="true"
+                    android:permission="android.permission.INTERACT_ACROSS_USERS_FULL" />
+            </application>
+        </manifest>
+        SUBEOF
+
+        cat << 'SUBEOF' > app/src/main/java/com/voiceagent/assistant/MainActivity.kt
+        package com.voiceagent.assistant
+
+        import android.Manifest
+        import android.content.Intent
+        import android.content.pm.PackageManager
+        import android.net.Uri
+        import android.os.Bundle
+        import android.provider.ContactsContract
+        import android.speech.RecognizerIntent
+        import android.speech.tts.TextToSpeech
+        import android.widget.Button
+        import android.widget.LinearLayout
+        import android.widget.ScrollView
+        import android.widget.TextView
+        import androidx.activity.result.contract.ActivityResultContracts
+        import androidx.appcompat.app.AppCompatActivity
+        import androidx.core.app.ActivityCompat
+        import okhttp3.OkHttpClient
+        import okhttp3.Request
+        import org.json.JSONObject
+        import rikka.shizuku.Shizuku
+        import java.net.URLEncoder
+        import java.util.Locale
+        import kotlin.concurrent.thread
+
+        class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
+
+            private lateinit var tvStatus: TextView
+            private lateinit var tvLogs: TextView
+            private lateinit var tts: TextToSpeech
+            private val httpClient = OkHttpClient()
+
+            private val speechLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { res ->
+                if (res.resultCode == RESULT_OK && res.data != null) {
+                    val spoken = res.data?.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS)?.firstOrNull()
+                    spoken?.let { handleCommand(it) }
+                }
+            }
+
+            private val permLauncher = registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) {
+                checkShizuku()
+            }
+
+            override fun onCreate(savedInstanceState: Bundle?) {
+                super.onCreate(savedInstanceState)
+
+                tts = TextToSpeech(this, this)
+
+                val root = LinearLayout(this).apply {
+                    orientation = LinearLayout.VERTICAL
+                    setPadding(40, 60, 40, 40)
+                }
+
+                val title = TextView(this).apply {
+                    text = "סוכן קולי אוטונומי (Shizuku)"
+                    textSize = 22f
+                }
+                root.addView(title)
+
+                tvStatus = TextView(this).apply {
+                    text = "בודק Shizuku..."
+                    textSize = 14f
+                    setPadding(0, 20, 0, 20)
+                }
+                root.addView(tvStatus)
+
+                val btnTalk = Button(this).apply {
+                    text = "🎤 לחץ כדי לדבר"
+                    setOnClickListener { startListening() }
+                }
+                root.addView(btnTalk)
+
+                val scroll = ScrollView(this).apply {
+                    layoutParams = LinearLayout.LayoutParams(
+                        LinearLayout.LayoutParams.MATCH_PARENT,
+                        LinearLayout.LayoutParams.MATCH_PARENT
+                    )
+                }
+                tvLogs = TextView(this).apply {
+                    text = "יומן פעולות מוכן..."
+                    textSize = 14f
+                    setPadding(0, 30, 0, 0)
+                }
+                scroll.addView(tvLogs)
+                root.addView(scroll)
+
+                setContentView(root)
+
+                permLauncher.launch(arrayOf(
+                    Manifest.permission.RECORD_AUDIO,
+                    Manifest.permission.ACCESS_FINE_LOCATION,
+                    Manifest.permission.READ_CONTACTS
+                ))
+            }
+
+            private fun log(msg: String) {
+                runOnUiThread {
+                    tvLogs.text = "${tvLogs.text}\n$msg"
+                }
+            }
+
+            private fun checkShizuku() {
+                val available = try { Shizuku.pingBinder() } catch (e: Throwable) { false }
+                if (!available) {
+                    tvStatus.text = "⚠️ Shizuku אינו פועל"
+                    return
+                }
+                if (Shizuku.checkSelfPermission() == PackageManager.PERMISSION_GRANTED) {
+                    tvStatus.text = "✅ Shizuku מחובר ומוכן!"
+                } else {
+                    tvStatus.text = "מבקש הרשאת Shizuku..."
+                    Shizuku.requestPermission(101)
+                }
+            }
+
+            private fun runShell(cmd: String): String {
+                return try {
+                    val p = Shizuku.newProcess(arrayOf("sh", "-c", cmd), null, null)
+                    val res = p.inputStream.bufferedReader().readText().trim()
+                    p.waitFor()
+                    res
+                } catch (e: Throwable) {
+                    "Error: ${e.message}"
+                }
+            }
+
+            private fun startListening() {
+                val intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
+                    putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
+                    putExtra(RecognizerIntent.EXTRA_LANGUAGE, "he-IL")
+                    putExtra(RecognizerIntent.EXTRA_PROMPT, "דבר אל הסוכן...")
+                }
+                try {
+                    speechLauncher.launch(intent)
+                } catch (e: Exception) {
+                    log("זיהוי קולי אינו זמין")
+                }
+            }
+
+            private fun handleCommand(cmd: String) {
+                log("🎤 פקודה: \"$cmd\"")
+                thread {
+                    val lower = cmd.lowercase()
+                    if (lower.contains("חום") || lower.contains("טמפרטורה") || lower.contains("אמא")) {
+                        log("⏳ בודק טמפרטורה נוכחית...")
+                        val temp = fetchTemp()
+                        log("☀️ טמפרטורה: $temp°C")
+
+                        val phone = findPhone("אמא") ?: "0500000000"
+                        val text = "היי, בדקתי עבורך: החום אצלי כרגע הוא $temp מעלות."
+
+                        log("🚀 שולח בוואטסאפ ללא מגע יד...")
+                        val enc = URLEncoder.encode(text, "UTF-8")
+                        var cleanPhone = phone.replace(Regex("[^0-9+]"), "")
+                        if (cleanPhone.startsWith("0")) cleanPhone = "972" + cleanPhone.substring(1)
+                        if (cleanPhone.startsWith("+")) cleanPhone = cleanPhone.substring(1)
+
+                        runShell("am start -a android.intent.action.VIEW -d \"whatsapp://send?phone=$cleanPhone&text=$enc\"")
+                        Thread.sleep(1200)
+                        runShell("input tap 980 2200") // לחיצה על שלח
+
+                        val done = "הטמפרטורה היא $temp מעלות, ושלחתי הודעה לאמא בוואטסאפ."
+                        log("✅ $done")
+                        speak(done)
+                    } else if (lower.contains("יוטיוב")) {
+                        log("פתיחת יוטיוב...")
+                        runShell("monkey -p com.google.android.youtube -c android.intent.category.LAUNCHER 1")
+                        speak("פותח יוטיוב")
+                    } else if (lower.contains("בית") || lower.contains("הבית")) {
+                        runShell("input keyevent 3")
+                        speak("חזרתי למסך הבית")
+                    } else {
+                        speak("הבנתי: $cmd")
+                    }
+                }
+            }
+
+            private fun fetchTemp(): String {
+                return try {
+                    val req = Request.Builder().url("https://api.open-meteo.com/v1/forecast?latitude=31.7683&longitude=35.2137&current=temperature_2m").build()
+                    val res = httpClient.newCall(req).execute().body?.string() ?: ""
+                    val json = JSONObject(res)
+                    json.getJSONObject("current").getDouble("temperature_2m").toString()
+                } catch (e: Exception) {
+                    "26"
+                }
+            }
+
+            private fun findPhone(name: String): String? {
+                val cursor = contentResolver.query(
+                    ContactsContract.CommonDataKinds.Phone.CONTENT_URI,
+                    arrayOf(ContactsContract.CommonDataKinds.Phone.NUMBER),
+                    "${ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME} LIKE ?",
+                    arrayOf("%$name%"),
+                    null
+                )
+                cursor?.use {
+                    if (it.moveToFirst()) {
+                        return it.getString(0)
+                    }
+                }
+                return null
+            }
+
+            private fun speak(text: String) {
+                tts.speak(text, TextToSpeech.QUEUE_FLUSH, null, "Agent")
+            }
+
+            override fun onInit(status: Int) {
+                if (status == TextToSpeech.SUCCESS) {
+                    tts.language = Locale("he")
+                }
+            }
+
+            override fun onDestroy() {
+                super.onDestroy()
+                tts.shutdown()
+            }
+        }
+        SUBEOF
+        echo "All files written directly as plain text!"
+
+    - name: Setup Gradle Wrapper
+      run: |
+        gradle wrapper --gradle-version 8.4
         chmod +x gradlew
 
     - name: Commit files to repository
       run: |
         git config --global user.name "github-actions[bot]"
         git config --global user.email "github-actions[bot]@users.noreply.github.com"
-        
-        # Add only project files (avoid touching .github)
-        git add app/ gradle/ gradlew build.gradle.kts settings.gradle.kts README.md
-        
+        git add app/ build.gradle.kts settings.gradle.kts gradle/ gradlew gradlew.bat
         if git diff --staged --quiet; then
           echo "No new files to commit"
         else
-          git commit -m "Add complete Voice Agent Android source files"
+          git commit -m "Deploy complete Voice Agent source code"
           git push origin HEAD:${{ github.ref_name }}
         fi
 
